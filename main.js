@@ -41,42 +41,51 @@ bot.on('message', function(user, userID, channelID, message, rawEvent) {
 	var server = bot.serverFromChannel(channelID);
 	if (userID != bot.id) { //filter out bot's own messages
 		if (message.slice(0,1) == "&") { //look for the command operator
-			statusReport(bot.servers[server].name + " in #" + bot.servers[server].channels[channelID].name + " - " + user + ": " + message); //Log messages to disk.
-			if (message.slice(1) == "ping") {
-				bot.sendMessage({
+			if (bot.servers[server]) {
+				statusReport("INTERACTION: " + bot.servers[server].name + " in #" + bot.servers[server].channels[channelID].name + " - " + user + ": " + message); //Log messages to disk.
+				if (message.slice(1) == "ping") {
+					bot.sendMessage({
+						to: channelID,
+						message: "@" + user + " : Pong!"
+					});
+					statusReport("INFO: Responded to Ping from " + user + ".");
+				}
+				else if (message.slice(1) == "help") {
+					bot.sendMessage({to: userID, message: "Commands: \n help - Lists the commands. (Sends in a Direct Message) \n ping - Used to check your connection. \n Use the & operator to use a command."});
+					statusReport("INFO: Responded to Help from " + user + ".");
+				}
+				else if (message.slice(1) == "rtd") {
+					bot.sendMessage({to: channelID, message: "*rolls the dice*"});
+					statusReport("INFO: Rolled the dice for " + user + ".")
+					bot.simulateTyping(channelID, function() {
+						var die1 = random.integer(1,6)
+						var die2 = random.integer(1,6)
+						var total = die1 + die2
+						bot.setPresence({game: "Roll the Dice"});
+						statusReport("INFO: Dice Roll, waiting 3 seconds.")
+						setTimeout(function() { 
+						bot.sendMessage({to: channelID, message: "@" + user + " : I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
+						statusReport("INFO: Reported dice roll to " + user + ".");
+						bot.setPresence({game: null});
+						statusReport("INFO: Dice Roll complete.")
+						}, 3000);
+					});
+				}
+				else if (message.slice(1) == "version") {
+					//NYI
+				}
+				else {
+					/*bot.sendMessage({
 					to: channelID,
-					message: "@" + user + " : Pong!"
-				});
-				statusReport("INFO: Responded to Ping from " + user + ".");
-			}
-			else if (message.slice(1) == "help") {
-				bot.sendMessage({to: userID, message: "Commands: \n help - Lists the commands. (Sends in a Direct Message) \n ping - Used to check your connection. \n Use the & operator to use a command."});
-				statusReport("INFO: Responded to Help from " + user + ".");
-			}
-			else if (message.slice(1) == "rtd") {
-				bot.sendMessage({to: channelID, message: "*rolls the dice*"});
-				statusReport("INFO: Rolled the dice for " + user + ".")
-				bot.simulateTyping(channelID, function() {
-					var die1 = random.integer(1,6)
-					var die2 = random.integer(1,6)
-					var total = die1 + die2
-					bot.setPresence({game: "Roll the Dice"});
-					setTimeout(function() { 
-					bot.sendMessage({to: channelID, message: "@" + user + " : I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
-					statusReport("INFO: Reported dice roll to " + user + ".");
-					bot.setPresence({game: null});
-					}, 3000);
-				});
-			}
-			else if (message.slice(1) == "version") {
-				//NYI
+					message: "@" + user + " : Unknown Command."
+					}); */
+					statusReport("WARNING: " + user + " used unknown command " + message)
+				}
 			}
 			else {
-				/*bot.sendMessage({
-				to: channelID,
-				message: "@" + user + " : Unknown Command."
-				}); */
-				statusReport("WARNING: " + user + " used unknown command " + message)
+				statusReport("WARNING: " + user + " tried to enter a command via Direct Message. This functionality is currently in development.");
+				bot.sendMessage({to: userID,
+				message: "Please only send commands in a valid channel. Direct messages do not yet work. Please visit https://discord.gg/0imlVmAZ4lWaxQKv to send commands without disturbing others."})
 			}
 		}
 	}
