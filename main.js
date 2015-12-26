@@ -1,7 +1,9 @@
+var config = require("./config")
+
 var DiscordClient = require('discord.io');
 var bot = new DiscordClient({
-    email: "REDACTED",
-    password: "REDACTED, nice try dummy.",
+    email: config.email,
+    password: config.password,
     autorun: true
 });
 
@@ -24,13 +26,14 @@ function toggleQuiet() {
 }
  
 bot.on('ready', function() {
-	console.log("UberBot is Active")
+	console.log("ALERT: UberBot is Active")
     console.log(bot.username + " - (" + bot.id + ")");
+	//bot.setPresence({game: "Your Mom's House"});
 });
  
 bot.on('message', function(user, userID, channelID, message, rawEvent) {
     console.log(channelID + " - " + user + ": " + message); //Log messages to disk.
-	if (message.slice(0,1) == "!") {
+	if (message.slice(0,1) == "&") {
 		if (message.slice(1) == "ping") {
 			bot.sendMessage({
 				to: channelID,
@@ -39,7 +42,7 @@ bot.on('message', function(user, userID, channelID, message, rawEvent) {
 		}
 		else if (message.slice(1) == "help") {
 			bot.sendMessage({to: userID, message: "Commands: \n help - Lists the commands. (Sends in a Direct Message) \n ping - Used to check your connection. \n Use the ! operator to use a command."});
-
+			console.log()
 		}
 		else if (message.slice(1) == "rtd") {
 			bot.sendMessage({to: channelID, message: "*rolls the dice*"});
@@ -52,11 +55,15 @@ bot.on('message', function(user, userID, channelID, message, rawEvent) {
 				}, 5000);
 			});
 		}
+		else if (message.slice(1) == "version") {
+			//NYI
+		}
 		else {
-			bot.sendMessage({
+			/*bot.sendMessage({
 			to: channelID,
 			message: "@" + user + " : Unknown Command."
-			});
+			}); */
+			console.log("WARNING:" + user + "used unknown command")
 		}
 	}
 });
