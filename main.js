@@ -14,6 +14,31 @@ function statusReport(report) {
 	bot.sendMessage({ to: "129321709533790208", message: report})
 }
 
+var commands = {
+    "ping": function(channelID, user, userID, message) {
+		var msplit = message.slice(1).toLowerCase().split(" ");
+		var args = {
+			"justin":function() {
+				statusReport("INFO: Responded to ping (type: justin) from " + user);
+				bot.sendMessage({to: channelID, message: "Justinisanoob!"});
+			}
+		}
+		if (msplit[1] in args){
+			args[msplit[1]]();
+		}
+		else if (msplit[1] != undefined){
+			statusReport("WARN: " + user + " gave invalid argument " + msplit[1] + " for command ping.");
+			bot.sendMessage({to:channelID, message: "Invalid Arguments."});
+		}
+		else if (msplit[1] == undefined) {
+			statusReport("INFO: Responded to ping from " + user);
+			bot.sendMessage({to:channelID, message: "Pong!"});
+		}
+		else {
+			statusReport("WARN: " + user + " gave command " + message + " and something wrong happened!")
+		}
+    }
+};
 
 var tempSettings = {quietmode:false}
 var dono = ["+Jack","Justin","Kyle","Luke"]
@@ -39,16 +64,13 @@ bot.on('ready', function() {
  
 bot.on('message', function(user, userID, channelID, message, rawEvent) {
 	var server = bot.serverFromChannel(channelID);
+	var msplit = message.slice(1).toLowerCase().split(" ");
 	if (userID != bot.id) { //filter out bot's own messages
 		if (message.slice(0,1) == "&") { //look for the command operator
 			if (bot.servers[server]) {
 				statusReport("INTERACTION: " + bot.servers[server].name + " in #" + bot.servers[server].channels[channelID].name + " - " + user + ": " + message); //Log messages to disk.
-				if (message.slice(1) == "ping") {
-					bot.sendMessage({
-						to: channelID,
-						message: "@" + user + " : Pong!"
-					});
-					statusReport("INFO: Responded to Ping from " + user + ".");
+				if (msplit[0] in commands) {
+					commands[msplit[0]](channelID, user, userID, message);
 				}
 				else if (message.slice(1) == "help") {
 					bot.sendMessage({to: userID, message: "Commands: \n help - Lists the commands. (Sends in a Direct Message) \n ping - Used to check your connection. \n Use the & operator to use a command."});
