@@ -47,6 +47,10 @@ var commands = {
 			"version": function() {
 				statusReport("INFO: Responded to help with argument version from " + user);
 				bot.sendMessage({to: userID, message: "&version - Lists the current version of the bot."});
+			},
+			"ping": function() {
+				statusReport("INFO: Responded to help with argument ping from " + user);
+				bot.sendMessage({to: userID, message: "&ping <argument> - Checks whether the bot is online."})
 			}
 		}
 		if (msplit[1] in args) {
