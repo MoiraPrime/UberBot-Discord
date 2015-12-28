@@ -1,0 +1,28 @@
+{
+  "name": "uberbot-discord",
+  "version": "1.0.0",
+  "description": "A simple node bot for discord.",
+  "main": "main.js",
+  "dependencies": {
+    "discord.io": "^1.6.0",
+    "random-js": "^1.0.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UberActivist/UberBot-Discord.git"
+  },
+  "keywords": [
+    "UberBot",
+    "Discord"
+  ],
+  "author": "UberActivist",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UberActivist/UberBot-Discord/issues"
+  },
+  "homepage": "https://github.com/UberActivist/UberBot-Discord#readme"
+}

@@ -1,4 +1,5 @@
 var config = require("./config")
+var http = require('http');
 var version = "1.0.0 using Discord.io version 1.6.0."
 
 var DiscordClient = require('discord.io');
@@ -10,6 +11,20 @@ var bot = new DiscordClient({
 
 var random = require("random-js")(); // uses the nativeMath engine
 var fs = require("fs")
+
+function handleRequest(request, response){
+    response.end('UberBot '+version+' is Online.');
+	console.log("HTTP RESPONSE")
+}
+
+var server = http.createServer(handleRequest);
+
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080
+var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1'
+
+server.listen(server_port, server_ip_address, function(){
+  console.log("Listening on " + server_ip_address + ", server_port " + server_port)
+});
 
 function statusReport(report) {
 	console.log(report)
