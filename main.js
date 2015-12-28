@@ -57,6 +57,10 @@ var commands = {
 			"info": function() {
 				statusReport("INFO: Responded to help with argument info from " + user);
 				bot.sendMessage({to: userID, message: "&info - Provides basic information about the bot."})
+			},
+			"boobs": function() {
+				statusReport("INFO: Responded to help with argument boobs from " + user);
+				bot.sendMessage({to: userID, message: "&info <argument> - Provides you with a picture of boobs. Alternatively, use the jack argument for a picture of jack."})
 			}
 			
 		}
@@ -97,11 +101,24 @@ var commands = {
 		statusReport("INFO: Responding to info request from " + user);
 		bot.sendMessage({to: channelID, message:"Name: UberBot (1.0.0) \n Author: UberActivist (@UberActivist on twitter) \n Library: Discord.io (1.6.0) by izy521"});
 	},
-	"boob": function (channelID, user, userID, message, msplit) {
+	"boobs": function (channelID, user, userID, message, msplit) {
+		var args = {
+			"jack": function () {
+				statusReport("INFO: Responding to boob (type:jack) request from " + user);
+				bot.sendMessage({to:channelID, message:"Here's a picture of a boob!"},function () {
+					bot.uploadFile({channel:channelID, file: fs.createReadStream("boob.jpg")});
+				});
+			}
+		}
+		if (msplit[1] && msplit[1] in args) {
+			args[msplit[1]]();
+		}
+		else{
 		statusReport("INFO: Responding to boob request from " + user);
-		bot.sendMessage({to:channelID, message:"Here's a picture of a boob!"},function () {
-			bot.uploadFile({channel:channelID, file: fs.createReadStream("boob.jpg")});
+		bot.sendMessage({to:channelID, message:"Here's a picture of boobs!"},function () {
+			bot.uploadFile({channel:channelID, file: fs.createReadStream("boobs.gif")});
 		});
+		}
 	}
 }
 
