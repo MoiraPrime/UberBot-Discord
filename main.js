@@ -1,4 +1,5 @@
 var config = require("./config")
+var version = "1.0.0 using Discord.io version 1.6.0."
 
 var DiscordClient = require('discord.io');
 var bot = new DiscordClient({
@@ -75,12 +76,16 @@ var commands = {
 			bot.setPresence({game: "Roll the Dice"});
 			statusReport("INFO: Dice Roll, waiting 3 seconds.")
 			setTimeout(function() { 
-				bot.sendMessage({to: channelID, message: "@" + user + " : I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
+				bot.sendMessage({to: channelID, message: "I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
 				statusReport("INFO: Reported dice roll to " + user + ".");
 				bot.setPresence({game: null});
 				statusReport("INFO: Dice Roll complete.")
 			}, 3000);
 		});
+	},
+	"version": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to version request from " + user);
+		bot.sendMessage({to: userID, message:"I UberBot, am version " + version});
 	}
 }
 
