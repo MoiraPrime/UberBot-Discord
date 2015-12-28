@@ -10,6 +10,8 @@ var bot = new DiscordClient({
 
 var random = require("random-js")(); // uses the nativeMath engine
 
+var botState = {shutdownPhase:false}
+
 function statusReport(report) {
 	console.log(report)
 	bot.sendMessage({ to: "129321709533790208", message: report})
@@ -89,20 +91,33 @@ var commands = {
 	}
 }
 
-var tempSettings = {quietmode:false}
-var dono = ["+Jack","Justin","Kyle","Luke"]
-var sama = ["UberActivist","Matt","Phantomazing"]
-
-function toggleQuiet() {
-	if (tempSettings.quietmode) {
-		tempSettings.quietmode = false
-		statusReport("CHANGE: Settings - QuietMode -> Off")
-	}
-	else {
-		tempSettings.quietmode = true
-		statusReport("CHANGE: Settings - QuietMode -> On")
+var adminCommands = {
+	"quit": function (user, message, msplit) {
+		if (parseInt(msplit[1])) {
+			if (msplit[1] < 121 || msplit[1] > 0) {
+				statusReport("ALERT: Bot will shut down in " + msplit[1] + " seconds. Shutdown triggered by " + user);
+				setTimeout(function () {
+					statusReport("ALERT: Bot is shutting down.");
+					bot.disconnect();
+				},msplit[1]+000);
+			}
+			else {
+				statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120. LZ");
+			}
+		}
+		else if (msplit[1] != undefined) {
+			statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120. NM");
+		}
+		else {
+			statusReport("ALERT: Bot will shut down in 60 seconds. Shutdown triggered by " + user);
+			setTimeout(function () {
+				statusReport("ALERT: Bot is shutting down.");
+				bot.disconnect();
+			},60000);
+		}
 	}
 }
+
  
 bot.on('ready', function() {
 	var d = new Date();
@@ -117,15 +132,25 @@ bot.on('message', function(user, userID, channelID, message, rawEvent) {
 	if (userID != bot.id) { //filter out bot's own messages
 		if (message.slice(0,1) == "&") { //look for the command operator
 			statusReport("INTERACTION: " + user + ": " + message); //Log messages to disk.
-			if (msplit[0] in commands) {
-				commands[msplit[0]](channelID, user, userID, message, msplit);
+			if (channelID == "129321709533790208") {
+				if (msplit[0] in adminCommands) {
+					adminCommands[msplit[0]](user, message, msplit);
+				}
+				else {
+					statusReport("WARNING: Unknown Admin command used by " + user);
+				}
 			}
 			else {
-				/*bot.sendMessage({
-				to: channelID,
-				message: "@" + user + " : Unknown Command."
-				}); */
-				statusReport("WARNING: " + user + " used unknown command " + message)
+				if (msplit[0] in commands) {
+					commands[msplit[0]](channelID, user, userID, message, msplit);
+				}
+				else {
+					/*bot.sendMessage({
+					to: channelID,
+					message: "@" + user + " : Unknown Command."
+					}); */
+					statusReport("WARNING: " + user + " used unknown command " + message)
+				}
 			}
 		}
 	}
