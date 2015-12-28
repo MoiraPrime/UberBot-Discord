@@ -94,25 +94,31 @@ var commands = {
 var adminCommands = {
 	"quit": function (user, message, msplit) {
 		if (parseInt(msplit[1])) {
-			if (msplit[1] < 121 || msplit[1] > 0) {
+			if (msplit[1] < 121 && msplit[1] > 0) {
 				statusReport("ALERT: Bot will shut down in " + msplit[1] + " seconds. Shutdown triggered by " + user);
 				setTimeout(function () {
 					statusReport("ALERT: Bot is shutting down.");
-					bot.disconnect();
-				},msplit[1]+000);
+					setTimeout(function(){
+						bot.disconnect();
+						process.exit();
+					},500);
+				},parseInt(msplit[1]*1000));
 			}
 			else {
-				statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120. LZ");
+				statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120.");
 			}
 		}
 		else if (msplit[1] != undefined) {
-			statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120. NM");
+			statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120.");
 		}
 		else {
 			statusReport("ALERT: Bot will shut down in 60 seconds. Shutdown triggered by " + user);
 			setTimeout(function () {
 				statusReport("ALERT: Bot is shutting down.");
-				bot.disconnect();
+				setTimeout(function(){
+					bot.disconnect();
+					process.exit();
+				},500);
 			},60000);
 		}
 	}
