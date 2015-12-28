@@ -52,7 +52,12 @@ var commands = {
 			"ping": function() {
 				statusReport("INFO: Responded to help with argument ping from " + user);
 				bot.sendMessage({to: userID, message: "&ping <argument> - Checks whether the bot is online."})
+			},
+			"info": function() {
+				statusReport("INFO: Responded to help with argument info from " + user);
+				bot.sendMessage({to: userID, message: "&info - Provides basic information about the bot."})
 			}
+			
 		}
 		if (msplit[1] in args) {
 			args[msplit[1]]();
@@ -62,7 +67,7 @@ var commands = {
 			bot.sendMessage({to: userID, message: "Invalid argument. Correct use: &help <command>"})
 		}
 		else {
-			bot.sendMessage({to: userID, message: "Commands: \n &help <command> - Lists the commands. (Sends in a Direct Message) \n &ping <argument> - Used to check your connection. \n &rtd - Roll the Dice! \n &version - Lists the version of the bot."});
+			bot.sendMessage({to: userID, message: "Commands: \n &help <command> - Lists the commands. (Sends in a Direct Message) \n &ping <argument> - Used to check your connection. \n &rtd - Roll the Dice! \n &version - Lists the version of the bot. \n &info - Provides basic information about the bot."});
 			statusReport("INFO: Responded to Help from " + user + ".");
 		}
 	},
