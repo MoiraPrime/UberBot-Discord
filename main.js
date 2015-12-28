@@ -9,6 +9,7 @@ var bot = new DiscordClient({
 });
 
 var random = require("random-js")(); // uses the nativeMath engine
+var fs = require("fs")
 
 function statusReport(report) {
 	console.log(report)
@@ -95,6 +96,12 @@ var commands = {
 	"info": function (channelID, user, userID, message, msplit) {
 		statusReport("INFO: Responding to info request from " + user);
 		bot.sendMessage({to: channelID, message:"Name: UberBot (1.0.0) \n Author: UberActivist (@UberActivist on twitter) \n Library: Discord.io (1.6.0) by izy521"});
+	},
+	"boob": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to boob request from " + user);
+		bot.sendMessage({to:channelID, message:"Here's a picture of a boob!"},function () {
+			bot.uploadFile({channel:channelID, file: fs.createReadStream("boob.jpg")});
+		});
 	}
 }
 
