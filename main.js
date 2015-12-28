@@ -10,8 +10,6 @@ var bot = new DiscordClient({
 
 var random = require("random-js")(); // uses the nativeMath engine
 
-var botState = {shutdownPhase:false}
-
 function statusReport(report) {
 	console.log(report)
 	bot.sendMessage({ to: "129321709533790208", message: report})
@@ -88,6 +86,10 @@ var commands = {
 	"version": function (channelID, user, userID, message, msplit) {
 		statusReport("INFO: Responding to version request from " + user);
 		bot.sendMessage({to: userID, message:"I UberBot, am version " + version});
+	},
+	"info": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to info request from " + user);
+		bot.sendMessage({to: channelID, message:"Name: UberBot (1.0.0) \n Author: UberActivist (@UberActivist on twitter) \n Library: Discord.io (1.6.0) by izy521"});
 	}
 }
 
@@ -121,14 +123,63 @@ var adminCommands = {
 				},500);
 			},60000);
 		}
+	},
+	"servers": function (user, message, msplit) {
+		statusReport("__**Server Name, Server ID**__");
+		setTimeout(function(){
+			for (x in bot.servers) {
+				statusReport(bot.servers[x].name + ", " + bot.servers[x].id);
+			}
+		},100)
+	},
+	"channels": function (user, message, msplit) {
+		if (msplit[1] && bot.servers[msplit[1]]) {
+			statusReport("__**Channel Name, Channel ID**__")
+			setTimeout(function(){
+				for (x in bot.servers[msplit[1]].channels) {
+					statusReport(bot.servers[msplit[1]].channels[x].name + ", " + bot.servers[msplit[1]].channels[x].id)
+				}
+			},100);
+		}
+		else {
+			statusReport("Please supply a server ID first.")
+		}
+	},
+	"say": function (user, message, msplit) {
+		if (msplit[1] && msplit[2]) {
+			bot.sendMessage({to: msplit[1], message: message.slice(msplit[1].length+6)})
+			statusReport("INFO: " + user + " sent message to " + msplit[1])
+		}
+		else {
+			statusReport("Invalid Arguments for command.")
+		}
+	},
+	"joinbyurl": function (user, message, msplit) {
+		if (msplit[1] && msplit[1].slice(0,19) === "https://discord.gg/") {
+			bot.acceptInvite(message.slice(30),function(response) {
+				statusReport("INFO: Attempted to accept invite with response: " + response);
+			});
+		}
+		else {
+			statusReport("Invalid Arguments for command.");
+		}
+	},
+	"leaveserver": function (user, message, msplit) {
+		if (msplit[1]) {
+			bot.deleteServer(msplit[1]);
+		}
+		else{
+			statusReport("Please supply a server ID first.");
+		}
 	}
 }
 
  
 bot.on('ready', function() {
 	var d = new Date();
+	statusReport("New Session of UberBot Initialized. Session ID: " + random.integer(100000,199999));
 	statusReport("ALERT: UberBot is Online as of " + d.toDateString() + " " + d.toTimeString());
-    statusReport("INFO: " + bot.username + " - (" + bot.id + ")");
+    statusReport("INFO: Logged in as " + bot.username + " with UID " + bot.id);
 	//bot.setPresence({game: "Your Mom's House"});
 });
  
