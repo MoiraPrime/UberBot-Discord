@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/UberActivist/UberBot-Discord/issues"
   },
-  "homepage": "https://github.com/UberActivist/UberBot-Discord#readme"
+  "homepage": "https://github.com/UberActivist/UberBot-Discord#readme",
+  "engines": {
+    "node": ">= 0.12.0"
+ },
 }
