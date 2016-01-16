@@ -4,7 +4,8 @@
   "description": "A simple node bot for discord.",
   "main": "main.js",
   "dependencies": {
-    "discord.io": "^1.6.0",
+    "discord.io": "^1.6.5",
+    "google": "^1.4.0",
     "random-js": "^1.0.8"
   },
   "devDependencies": {},
@@ -27,5 +28,5 @@
   "homepage": "https://github.com/UberActivist/UberBot-Discord#readme",
   "engines": {
     "node": ">= 0.12.0"
- }
+  }
 }

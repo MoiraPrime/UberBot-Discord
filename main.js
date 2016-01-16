@@ -76,8 +76,10 @@ var commands = {
 			"boobs": function() {
 				statusReport("INFO: Responded to help with argument boobs from " + user);
 				bot.sendMessage({to: userID, message: "&info <argument> - Provides you with a picture of boobs. Alternatively, use the jack argument for a picture of jack."})
+			},
+			"lenny": function() {
+				statusReport("INFO: Responded to help with argument lenny from " + user)
 			}
-			
 		}
 		if (msplit[1] in args) {
 			args[msplit[1]]();
@@ -87,7 +89,7 @@ var commands = {
 			bot.sendMessage({to: userID, message: "Invalid argument. Correct use: &help <command>"})
 		}
 		else {
-			bot.sendMessage({to: userID, message: "Commands: \n &help <command> - Lists the commands. (Sends in a Direct Message) \n &ping <argument> - Used to check your connection. \n &rtd - Roll the Dice! \n &version - Lists the version of the bot. \n &info - Provides basic information about the bot."});
+			bot.sendMessage({to: userID, message: "Commands: \n &help <command> - Lists the commands. (Sends in a Direct Message) \n &ping <argument> - Used to check your connection. \n &rtd - Roll the Dice! \n &version - Lists the version of the bot. \n &info - Provides basic information about the bot. \n &boobs <argument> - Provides the requestee with a picture of boobs. \n &lenny - Sends a lenny face to the current channel."});
 			statusReport("INFO: Responded to Help from " + user + ".");
 		}
 	},
@@ -120,9 +122,7 @@ var commands = {
 		var args = {
 			"jack": function () {
 				statusReport("INFO: Responding to boob (type:jack) request from " + user);
-				bot.sendMessage({to:channelID, message:"Here's a picture of a boob!"},function () {
-					bot.uploadFile({channel:channelID, file: fs.createReadStream("boob.jpg")});
-				});
+				bot.sendMessage({to:channelID, message:"Here's a picture of a boob! https://images.discordapp.net/eyJ1cmwiOiJodHRwczovL2Rpc2NvcmQuczMuYW1hem9uYXdzLmNvbS9hdHRhY2htZW50cy8xMzAyMTczMjM1NDA5MDU5ODQvMTMxMzM2MjYwMTMxMzU2NjcyL2Jvb2IuanBnIn0.ZRh31bSxEs9KbxziLO-8-97T1ZE.jpg"});
 			}
 		}
 		if (msplit[1] && msplit[1] in args) {
@@ -130,10 +130,29 @@ var commands = {
 		}
 		else{
 		statusReport("INFO: Responding to boob request from " + user);
-		bot.sendMessage({to:channelID, message:"Here's a picture of boobs!"},function () {
-			bot.uploadFile({channel:channelID, file: fs.createReadStream("boobs.gif")});
-		});
+		bot.sendMessage({to:channelID, message:"Here's a picture of boobs! https://images.discordapp.net/.eJwNyFEOgyAMANC7cAAKFBh6m4rbNBFrbJclGu-un--d5rcvpjeT6iY9wDhL5X20gpYaHbzSX2zlBqRKdWrvVQU8uuBfGDBF17nUlfiUx4c5p1hcLpgCDMyD2O_8MdcNskcfHQ.dVYeqF7C2_odrix_jOdnXqFiAEE.gif"});
 		}
+	},
+	"lenny": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to lenny request from " + user);
+		bot.sendMessage({to:channelID, message:"( ͡° ͜ʖ ͡°)"});
+	},
+	"google": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to google request from " + user)
+		var google = require('google')
+		google.resultsPerPage = 5
+		google(message.slice(7), function (err, next, links) {
+			 if (err) {console.error(err)}
+			 for (i = 0; i < 5; i++) {
+				 if (links[i].link) {
+					 bot.sendMessage({to:channelID, message: links[i].title + "\n" + links[i].link});
+					break;
+				 }
+				 else if (i===5) {
+					 bot.sendMessage({to:channelID, message: "Sorry! None of the first 5 results returned any links."});
+				 }
+			 }
+		});
 	}
 }
 
@@ -248,11 +267,14 @@ bot.on('message', function(user, userID, channelID, message, rawEvent) {
 				else {
 					/*bot.sendMessage({
 					to: channelID,
-					message: "@" + user + " : Unknown Command."
+					message: "<@" + userID + " : Unknown Command."
 					}); */
-					statusReport("WARNING: " + user + " used unknown command " + message)
+					statusReport("WARNING: " + user + " used unknown command " + message);
 				}
 			}
+		}
+		else if (message.indexOf("ayy") >= 0) {
+			bot.sendMessage({to:channelID, message: "lmao"});
 		}
 	}
 });
