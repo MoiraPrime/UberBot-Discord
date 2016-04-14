@@ -1,0 +1,237 @@
+var commands = {
+    "ping": { 
+	metaData: {
+		cName: "Ping",
+		description: "Responds to a basic command. Used for confirming your connection.",
+		basicDescription: "Provides a 'pong' response.",
+		usage: "&ping <argument>",
+		validArgs: "nothing, justin"
+	},
+	"code": function(channelID, user, userID, message, msplit) {
+		var args = {
+			"justin": function() {
+				statusReport("INFO: Responded to ping (type: justin) from " + user);
+				bot.sendMessage({to: channelID, message: "Justinisanoob!"});
+			}
+		}
+		if (msplit[1] in args){
+			args[msplit[1]]();
+		}
+		else {
+			statusReport("INFO: Responded to ping from " + user);
+			bot.sendMessage({to:channelID, message: "Pong!"});
+		}
+    }},
+	"help": {
+		metaData: {
+			cName: "Help",
+			description: "Lists the commands of the bot. This command can also be used to provide further information on a specific command. This command uses direct messages.",
+			basicDescription: "",
+			usage: "&help <command>",
+			validArgs: "Any command under &help."
+		},
+		"code": function(channelID, user, userID, message, msplit) {
+			if (msplit[1] && msplit[1] in commands) {
+				if (commands[msplit[1]].metaData) {
+					bot.sendMessage({to:channelID, message: "**" + commands[msplit[1]].metaData.cName + "**" + "\n" + commands[msplit[1]].metaData.description + "\n**Usage:** " + commands[msplit[1]].metaData.usage + "\n**Valid Arguments:** " + commands[msplit[1]].metaData.validArgs});
+				}
+				else {
+					bot.sendMessage({to:channelID, message: msplit[1] + " is a valid command, but no further information was found on this command. Please try again later."});
+				}
+			}
+			else if (msplit[1]) {
+				bot.sendMessage({to:channelID, message: "Invalid Arguments"});
+			}
+			else {
+				var sendthis;
+				for (var i in commands) {
+					if (sendthis) {
+						sendthis = sendthis + "\n&" + i;
+					}
+					else {
+						sendthis = "**Commands:**\n&" + i;
+					}
+				}
+				bot.sendMessage({to: userID, message: sendthis + "\nTo see the specifics of a command, say &help <command>"});
+			}
+	}},
+	"rtd": { metaData: {
+		cName: "Roll The Dice",
+		description: "Rolls two 6-sided dice.",
+		basicDescription: "",
+		usage: "&rtd",
+		validArgs: "None"
+	},
+		"code": function (channelID, user, userID, message, msplit) {
+		bot.sendMessage({to: channelID, message: "*rolls the dice*"});
+		statusReport("INFO: Rolled the dice for " + user + ".")
+		bot.simulateTyping(channelID, function() {
+			var die1 = random.integer(1,6)
+			var die2 = random.integer(1,6)
+			var total = die1 + die2
+			bot.setPresence({game: "Roll the Dice"});
+			statusReport("INFO: Dice Roll, waiting 3 seconds.")
+			setTimeout(function() { 
+				bot.sendMessage({to: channelID, message: "I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
+				statusReport("INFO: Reported dice roll to " + user + ".");
+				bot.setPresence({game: "Half-Life 3"});
+				statusReport("INFO: Dice Roll complete.")
+			}, 3000);
+		});
+	}},
+	"version": {
+	metaData: {
+		cName: "Version",
+		description: "Provides the version of the bot.",
+		basicDescription: "",
+		usage: "&version",
+		validArgs: "None"
+	},
+	"code": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to version request from " + user);
+		bot.sendMessage({to: userID, message:"I UberBot, am version " + version});
+	}},
+	"info": {
+		metaData: {
+			cName: "Info",
+			description: "Provides basic information about the bot, including the author and library used.",
+			basicDescription: "",
+			usage: "&info",
+			validArgs: "None"
+		},
+		"code": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to info request from " + user);
+		bot.sendMessage({to: channelID, message:"Name: UberBot ("+version+") \n Author: UberActivist (@UberActivist on twitter) \n Library: Discord.io (1.7.1) by izy521"});
+	}},
+	"boobs": {
+		metaData: {
+			cName: "Boobs",
+			description: "Provides a picture of boobs.",
+			basicDescription: "",
+			usage: "&boobs <argument>",
+			validArgs: "nothing, jack"
+		},
+		"code": function (channelID, user, userID, message, msplit) {
+		var args = {
+			"jack": function () {
+				statusReport("INFO: Responding to boob (type:jack) request from " + user);
+				bot.sendMessage({to:channelID, message:"Here's a picture of a boob! https://images.discordapp.net/eyJ1cmwiOiJodHRwczovL2Rpc2NvcmQuczMuYW1hem9uYXdzLmNvbS9hdHRhY2htZW50cy8xMzAyMTczMjM1NDA5MDU5ODQvMTMxMzM2MjYwMTMxMzU2NjcyL2Jvb2IuanBnIn0.ZRh31bSxEs9KbxziLO-8-97T1ZE.jpg"});
+			}
+		}
+		if (msplit[1] && msplit[1] in args) {
+			args[msplit[1]]();
+		}
+		else{
+		statusReport("INFO: Responding to boob request from " + user);
+		bot.sendMessage({to:channelID, message:"Here's a picture of boobs! https://images.discordapp.net/.eJwNyFEOgyAMANC7cAAKFBh6m4rbNBFrbJclGu-un--d5rcvpjeT6iY9wDhL5X20gpYaHbzSX2zlBqRKdWrvVQU8uuBfGDBF17nUlfiUx4c5p1hcLpgCDMyD2O_8MdcNskcfHQ.dVYeqF7C2_odrix_jOdnXqFiAEE.gif"});
+		}
+	}},
+	"lenny": {
+		metaData: {
+			cName: "Lenny Face",
+			description: "Provides lenny, everyone's favorite meme.",
+			basicDescription: "",
+			usage: "&lenny",
+			validArgs: "None"
+		},
+		"code": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to lenny request from " + user);
+		bot.sendMessage({to:channelID, message:"( ?° ?? ?°)"});
+	}},
+	"google": {
+		metaData: {
+			cName: "Google",
+			description: "Instantly googles for the first result under a provided search term.",
+			basicDescription: "",
+			usage: "&google <search terms>",
+			validArgs: "Any line of text that is under 25 characters."
+		},
+		"code": function (channelID, user, userID, message, msplit) {
+		statusReport("INFO: Responding to google request from " + user)
+		var google = require('google')
+		google.resultsPerPage = 5
+		google(message.slice(7), function (err, next, links) {
+			 if (err) {console.error(err)}
+			 for (i = 0; i < 5; i++) {
+				 if (links[i].link) {
+					 bot.sendMessage({to:channelID, message: links[i].title + "\n" + links[i].link});
+					break;
+				 }
+				 else if (i===5) {
+					 bot.sendMessage({to:channelID, message: "Sorry! None of the first 5 results returned any links."});
+				 }
+			 }
+		});
+	}},
+	"shrug": {
+		"code": function (channelID, user, userID, message, msplit) {
+			bot.sendMessage({to: channelID, message: "¯\\\\\\_(?)_/¯"});
+		}
+	},
+	"disapprove": {
+		"code": function (channelID, user, userID, message, msplit) {
+			bot.sendMessage({to: channelID, message: "?_?"});
+		}
+	},
+	"sunglasses": {
+		"code": function (channelID, user, userID, message, msplit) {
+			bot.sendMessage({to: channelID, message: "(•\\_•)  ( •\\_•)>¬¦-¦  (¬¦\\_¦)"});
+		}
+	},
+	"roulette": {
+		"code": function (channelID, user, userID, message, msplit) {
+			var left =  7 - rollNumber;
+			if (lastRoll != userID) {
+				var picker = random.integer(1,left)
+				bot.sendMessage({to: channelID, message: user + " *pulls the trigger*"})
+				if (picker === 1) {
+					setTimeout(function () { 
+					bot.sendMessage({to: channelID, message: "[Chamber " + rollNumber + " of 6] <@" + userID + "> **BANG**\nYou lose!"},
+					function () {bot.sendMessage({to: channelID, message: "*reloading...*"});
+					rollNumber = 1;
+					lastRoll = undefined;}
+					)},1000);
+				}
+				else {
+					if (rollNumber === 5) {
+						setTimeout(function () {
+							bot.sendMessage({to:channelID, message: "[Chamber " + rollNumber + " of 6] <@" + userID + "> **click**"}); 
+							bot.sendMessage({to:channelID, message: "Guess it's my turn.\nUberBot *pulls the trigger*"});
+							rollNumber = 1;
+						lastRoll =  undefined; },1000);
+						var letsRoll = random.integer(1,15);
+						setTimeout(function () {
+							if (letsRoll === 1) {
+								bot.sendMessage({to:channelID, message: "[Chamber 6 of 6] **click**\nDamn, did I forget to load this thing?\n*reloading...*"});
+							}
+							else {
+								bot.sendMessage({to: channelID, message: "[Chamber 6 of 6] **BANG**\n*reloading...*"})
+							}
+						},5000);
+					}
+					else {
+						setTimeout(function () {bot.sendMessage({to:channelID, message: "[Chamber " + rollNumber + " of 6] <@" + userID + "> **click**"},
+						function () {
+							rollNumber++;
+							lastRoll = userID;
+						}
+						);}, 1000);
+					}
+				}
+			}
+			else {
+				bot.sendMessage({to: channelID, message: "Sorry, you may not go twice in a row. Ask someone else to go."});
+			}
+		}
+	},
+	"csi": {
+		"code": function (channelID, user, userID, message, msplit) {
+			var uno = random.integer(0,csi["first"].length-1)
+			var dos = random.integer(0,csi["second"].length-1)
+			var tres = random.integer(0,csi["third"].length-1)
+			var cuatro = random.integer(0,csi["third"].length-1)
+			bot.sendMessage({to: channelID, message: csi["first"][uno] + " " + csi["second"][dos] + " the " + csi["third"][tres] + " with the " + csi["third"][cuatro] + "."});
+		}
+	}
+	
+}

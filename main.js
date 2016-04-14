@@ -1,20 +1,82 @@
-var config = require("./config")
-var http = require('http');
-var version = "1.0.0 using Discord.io version 1.6.0."
+//Modules to include and shit
+var meta = require("./package.json"),
+    config = require("./config"),
+    http = require('http'),
+    DiscordClient = require('discord.io'),
+    random = require("random-js")(), // uses the nativeMath engine
+    fs = require("fs"),
+    steam = require("@doctormckay/steam-webapi"),
+    api = new steam(config.steamKey);
 
-var DiscordClient = require('discord.io');
 var bot = new DiscordClient({
-    email: config.email,
-    password: config.password,
+    token: config.token,
     autorun: true
 });
 
-var random = require("random-js")(); // uses the nativeMath engine
-var fs = require("fs")
+const mysql = require("mysql");
+//database
+var con = mysql.createConnection({
+    host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+    port: process.env.OPENSHIFT_MYSQL_DB_PORT,
+    user: process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+    password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+    database: "discord"
+});
 
-function handleRequest(request, response){
-    response.end('UberBot '+version+' is Online.');
-	console.log("HTTP RESPONSE")
+con.on('error', function(err) {
+    if (!err.fatal) {
+        return;
+    }
+
+    if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+
+
+        console.log('Re-connecting lost connection: ' + err.stack);
+
+        con = mysql.createConnection({
+            host: process.env.OPENSHIFT_MYSQL_DB_HOST,
+            port: process.env.OPENSHIFT_MYSQL_DB_PORT,
+            user: process.env.OPENSHIFT_MYSQL_DB_USERNAME,
+            password: process.env.OPENSHIFT_MYSQL_DB_PASSWORD,
+            database: "discord"
+        });
+        con.connect();
+    }
+});
+
+//Global Variables
+var cmds = {};
+var connected = bot.connected
+var stressTest = false;
+var prevConnection = false;
+var g_plugins = [];
+
+function handleRequest(req, res) {
+    res.end('UberBot is Online.');
+    console.log("HTTP RESPONSE");
+    var url = req.url
+    if (url == '/health') {
+        res.writeHead(200);
+        res.end();
+    } else if (url.indexOf('/info/') == 0) {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-cache, no-store');
+        res.end(JSON.stringify(sysInfo[url.slice(6)]()));
+    } else {
+        fs.readFile('./static' + url, function(err, data) {
+            if (err) {
+                res.writeHead(404);
+                res.end();
+            } else {
+                var ext = path.extname(url).slice(1);
+                res.setHeader('Content-Type', contentTypes[ext]);
+                if (ext === 'html') {
+                    res.setHeader('Cache-Control', 'no-cache, no-store');
+                }
+                res.end(data);
+            }
+        });
+    }
 }
 
 var server = http.createServer(handleRequest);
@@ -22,259 +84,139 @@ var server = http.createServer(handleRequest);
 var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080
 var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1'
 
-server.listen(server_port, server_ip_address, function(){
-  console.log("Listening on " + server_ip_address + ", server_port " + server_port)
+server.listen(server_port, server_ip_address, function() {
+    console.log("Listening on " + server_ip_address + ", server_port " + server_port);
+});
+
+server.on("error", () => {
+    server = http.createServer(handleRequest);
+    server.listen(server_port, server_ip_address, function() {
+        console.log("Listening on " + server_ip_address + ", server_port " + server_port);
+    });
 });
 
 function statusReport(report) {
-	console.log(report)
-	bot.sendMessage({ to: "129321709533790208", message: report})
+    console.log(report);
+    bot.sendMessage({
+        to: "129321709533790208",
+        message: report
+    });
 }
 
-var commands = {
-    "ping": function(channelID, user, userID, message, msplit) {
-		var args = {
-			"justin": function() {
-				statusReport("INFO: Responded to ping (type: justin) from " + user);
-				bot.sendMessage({to: channelID, message: "Justinisanoob!"});
-			}
-		}
-		if (msplit[1] in args){
-			args[msplit[1]]();
-		}
-		else if (msplit[1] != undefined){
-			statusReport("WARN: " + user + " gave invalid argument " + msplit[1] + " for command ping.");
-			bot.sendMessage({to:channelID, message: "Invalid Arguments."});
-		}
-		else {
-			statusReport("INFO: Responded to ping from " + user);
-			bot.sendMessage({to:channelID, message: "Pong!"});
-		}
-    },
-	"help": function(channelID, user, userID, message, msplit) {
-		var args = {
-			"help": function() {
-				statusReport("INFO: Responded to help with argument help from " + user);
-				bot.sendMessage({to: userID, message: "&help <command> - Gives a list of commands, and alternatively the specifics of a single command if an argument is given."});
-			},
-			"rtd": function() {
-				statusReport("INFO: Responded to help with argument rtd from " + user);
-				bot.sendMessage({to: userID, message: "&rtd - Rolls the dice."})
-			},
-			"version": function() {
-				statusReport("INFO: Responded to help with argument version from " + user);
-				bot.sendMessage({to: userID, message: "&version - Lists the current version of the bot."});
-			},
-			"ping": function() {
-				statusReport("INFO: Responded to help with argument ping from " + user);
-				bot.sendMessage({to: userID, message: "&ping <argument> - Checks whether the bot is online."})
-			},
-			"info": function() {
-				statusReport("INFO: Responded to help with argument info from " + user);
-				bot.sendMessage({to: userID, message: "&info - Provides basic information about the bot."})
-			},
-			"boobs": function() {
-				statusReport("INFO: Responded to help with argument boobs from " + user);
-				bot.sendMessage({to: userID, message: "&info <argument> - Provides you with a picture of boobs. Alternatively, use the jack argument for a picture of jack."})
-			},
-			"lenny": function() {
-				statusReport("INFO: Responded to help with argument lenny from " + user)
-			}
-		}
-		if (msplit[1] in args) {
-			args[msplit[1]]();
-		}
-		else if (msplit[1] != undefined) {
-			statusReport("WARN: " + user + " gave invalid argument " + msplit[1] + " for command help.");
-			bot.sendMessage({to: userID, message: "Invalid argument. Correct use: &help <command>"})
-		}
-		else {
-			bot.sendMessage({to: userID, message: "Commands: \n &help <command> - Lists the commands. (Sends in a Direct Message) \n &ping <argument> - Used to check your connection. \n &rtd - Roll the Dice! \n &version - Lists the version of the bot. \n &info - Provides basic information about the bot. \n &boobs <argument> - Provides the requestee with a picture of boobs. \n &lenny - Sends a lenny face to the current channel."});
-			statusReport("INFO: Responded to Help from " + user + ".");
-		}
-	},
-	"rtd": function (channelID, user, userID, message, msplit) {
-		bot.sendMessage({to: channelID, message: "*rolls the dice*"});
-		statusReport("INFO: Rolled the dice for " + user + ".")
-		bot.simulateTyping(channelID, function() {
-			var die1 = random.integer(1,6)
-			var die2 = random.integer(1,6)
-			var total = die1 + die2
-			bot.setPresence({game: "Roll the Dice"});
-			statusReport("INFO: Dice Roll, waiting 3 seconds.")
-			setTimeout(function() { 
-				bot.sendMessage({to: channelID, message: "I rolled two 6-sided dice. Die one is a " + die1 + " and die two is a " + die2 +". I rolled a total of " + total }); 
-				statusReport("INFO: Reported dice roll to " + user + ".");
-				bot.setPresence({game: null});
-				statusReport("INFO: Dice Roll complete.")
-			}, 3000);
-		});
-	},
-	"version": function (channelID, user, userID, message, msplit) {
-		statusReport("INFO: Responding to version request from " + user);
-		bot.sendMessage({to: userID, message:"I UberBot, am version " + version});
-	},
-	"info": function (channelID, user, userID, message, msplit) {
-		statusReport("INFO: Responding to info request from " + user);
-		bot.sendMessage({to: channelID, message:"Name: UberBot (1.0.0) \n Author: UberActivist (@UberActivist on twitter) \n Library: Discord.io (1.6.0) by izy521"});
-	},
-	"boobs": function (channelID, user, userID, message, msplit) {
-		var args = {
-			"jack": function () {
-				statusReport("INFO: Responding to boob (type:jack) request from " + user);
-				bot.sendMessage({to:channelID, message:"Here's a picture of a boob! https://images.discordapp.net/eyJ1cmwiOiJodHRwczovL2Rpc2NvcmQuczMuYW1hem9uYXdzLmNvbS9hdHRhY2htZW50cy8xMzAyMTczMjM1NDA5MDU5ODQvMTMxMzM2MjYwMTMxMzU2NjcyL2Jvb2IuanBnIn0.ZRh31bSxEs9KbxziLO-8-97T1ZE.jpg"});
-			}
-		}
-		if (msplit[1] && msplit[1] in args) {
-			args[msplit[1]]();
-		}
-		else{
-		statusReport("INFO: Responding to boob request from " + user);
-		bot.sendMessage({to:channelID, message:"Here's a picture of boobs! https://images.discordapp.net/.eJwNyFEOgyAMANC7cAAKFBh6m4rbNBFrbJclGu-un--d5rcvpjeT6iY9wDhL5X20gpYaHbzSX2zlBqRKdWrvVQU8uuBfGDBF17nUlfiUx4c5p1hcLpgCDMyD2O_8MdcNskcfHQ.dVYeqF7C2_odrix_jOdnXqFiAEE.gif"});
-		}
-	},
-	"lenny": function (channelID, user, userID, message, msplit) {
-		statusReport("INFO: Responding to lenny request from " + user);
-		bot.sendMessage({to:channelID, message:"( ͡° ͜ʖ ͡°)"});
-	},
-	"google": function (channelID, user, userID, message, msplit) {
-		statusReport("INFO: Responding to google request from " + user)
-		var google = require('google')
-		google.resultsPerPage = 5
-		google(message.slice(7), function (err, next, links) {
-			 if (err) {console.error(err)}
-			 for (i = 0; i < 5; i++) {
-				 if (links[i].link) {
-					 bot.sendMessage({to:channelID, message: links[i].title + "\n" + links[i].link});
-					break;
-				 }
-				 else if (i===5) {
-					 bot.sendMessage({to:channelID, message: "Sorry! None of the first 5 results returned any links."});
-				 }
-			 }
-		});
-	}
-}
 
-var adminCommands = {
-	"quit": function (user, message, msplit) {
-		if (parseInt(msplit[1])) {
-			if (msplit[1] < 121 && msplit[1] > 0) {
-				statusReport("ALERT: Bot will shut down in " + msplit[1] + " seconds. Shutdown triggered by " + user);
-				setTimeout(function () {
-					statusReport("ALERT: Bot is shutting down.");
-					setTimeout(function(){
-						bot.disconnect();
-						process.exit();
-					},500);
-				},parseInt(msplit[1]*1000));
-			}
-			else {
-				statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120.");
-			}
-		}
-		else if (msplit[1] != undefined) {
-			statusReport("WARN: Invalid argument. Argument must be a valid integer between 1 and 120.");
-		}
-		else {
-			statusReport("ALERT: Bot will shut down in 60 seconds. Shutdown triggered by " + user);
-			setTimeout(function () {
-				statusReport("ALERT: Bot is shutting down.");
-				setTimeout(function(){
-					bot.disconnect();
-					process.exit();
-				},500);
-			},60000);
-		}
-	},
-	"servers": function (user, message, msplit) {
-		statusReport("__**Server Name, Server ID**__");
-		setTimeout(function(){
-			for (x in bot.servers) {
-				statusReport(bot.servers[x].name + ", " + bot.servers[x].id);
-			}
-		},100)
-	},
-	"channels": function (user, message, msplit) {
-		if (msplit[1] && bot.servers[msplit[1]]) {
-			statusReport("__**Channel Name, Channel ID**__")
-			setTimeout(function(){
-				for (x in bot.servers[msplit[1]].channels) {
-					statusReport(bot.servers[msplit[1]].channels[x].name + ", " + bot.servers[msplit[1]].channels[x].id)
-				}
-			},100);
-		}
-		else {
-			statusReport("Please supply a server ID first.")
-		}
-	},
-	"say": function (user, message, msplit) {
-		if (msplit[1] && msplit[2]) {
-			bot.sendMessage({to: msplit[1], message: message.slice(msplit[1].length+6)})
-			statusReport("INFO: " + user + " sent message to " + msplit[1])
-		}
-		else {
-			statusReport("Invalid Arguments for command.")
-		}
-	},
-	"joinbyurl": function (user, message, msplit) {
-		if (msplit[1] && msplit[1].slice(0,19) === "https://discord.gg/") {
-			bot.acceptInvite(message.slice(30),function(response) {
-				statusReport("INFO: Attempted to accept invite with response: " + response);
-			});
-		}
-		else {
-			statusReport("Invalid Arguments for command.");
-		}
-	},
-	"leaveserver": function (user, message, msplit) {
-		if (msplit[1]) {
-			bot.deleteServer(msplit[1]);
-		}
-		else{
-			statusReport("Please supply a server ID first.");
-		}
-	}
-}
-
- 
 bot.on('ready', function() {
-	var d = new Date();
-	statusReport("New Session of UberBot Initialized. Session ID: " + random.integer(100000,199999));
-	statusReport("ALERT: UberBot is Online as of " + d.toDateString() + " " + d.toTimeString());
+    var d = new Date();
+    statusReport("New Session of UberBot Initialized. Session ID: " + random.integer(100000, 199999));
+    statusReport("ALERT: UberBot is Online as of " + d.toDateString() + " " + d.toTimeString());
     statusReport("INFO: Logged in as " + bot.username + " with UID " + bot.id);
-	//bot.setPresence({game: "Your Mom's House"});
+    statusReport("Running Node.js version " + process.version);
+    statusReport('Running Uberbot version ' + meta.version);
+    //console.log(bot.servers[bot.serverFromChannel("149707514521321473")].roles);
+    if (prevConnection) {
+        return;
+    }
+
+    fs.readdir(__dirname + "/commands", function(err, files) {
+        if (err) {
+            console.log("Error loading commands: " + err);
+            return;
+        }
+
+        files.forEach((file) => {
+            if (file.match(/\.js$/)) {
+                try {
+                    var gcmds = require(__dirname + "/commands/" + file)(statusReport, g_plugins);
+                    gcmds.triggers.forEach(function(trigger) {
+                        cmds[trigger] = gcmds;
+                    });
+                } catch (e1) {
+                    try {
+                        statusReport(`Unable to load command ${gcmds.meta.name} due to the following error: ${e1}`)
+                    } catch (e2) {
+                        statusReport(`Unable to load command at ${file} due to the following document format error: ${e1} which resulted in ${e2}`);
+                    }
+                    return;
+                }
+                statusReport(`Loaded command ${gcmds.meta.name}`);
+            }
+        });
+    });
+
+    fs.readdir(__dirname + "/plugins", function(err, files) {
+        if (err) {
+            console.log("Error loading plugins: " + err);
+            return;
+        }
+        files.forEach((file) => {
+            if (file.match(/\.js$/)) {
+                try {
+                    var gplugins = require(__dirname + "/plugins/" + file)(statusReport);
+                    if (gplugins.disabled) {
+                        console.log(`Haulting load on ${gplugins.name} ${gplugins.version} by ${gplugins.author} due to disable flag being enabled.`);
+                        g_plugins.push(`${gplugins.name} ${gplugins.version} by ${gplugins.author} **DISABLED**`);
+                        return;
+                    }
+                    gplugins.callback();
+                } catch (e1) {
+                    try {
+                        console.log(`Unable to load ${gplugins.name} ${gplugins.version} by ${gplugins.author} due to the following error: ${e1}`);
+                        g_plugins.push(`${gplugins.name} ${gplugins.version} by ${gplugins.author}  **NOT LOADED, ERROR**`);
+                    } catch (e2) {
+                        console.log(`Unable to load plugin at ${file} due to the following document format error: ${e1} which resulted in ${e2}`);
+                        g_plugins.push(`${file} X.X.X by Unknown **NOT LOADED, BAD FORMAT**`);
+                    }
+                    return;
+                }
+                statusReport(`Loaded plugin ${gplugins.name} ${gplugins.version} by ${gplugins.author}`);
+                g_plugins.push(`${gplugins.name} ${gplugins.version} by ${gplugins.author}  **LOADED, RUNNING**`);
+            }
+        });
+    });
+    prevConnection = true;
 });
- 
+
+bot.on("disconnected", () => {
+    var tries = 1;
+    var repeat = setInterval(reconnect, 10000);
+
+    function reconnect() {
+        if (connected) {
+            clearInterval(repeat);
+            console.log(`INFO: Successfully reconnected after ${tries} retries.`);
+            return;
+        }
+        console.log(`ERROR: Unable to connect. Retrying in 10 seconds... (×${tries})`);
+        bot.connect();
+        tries++;
+    }
+});
+
 bot.on('message', function(user, userID, channelID, message, rawEvent) {
-	var server = bot.serverFromChannel(channelID);
-	var msplit = message.slice(1).toLowerCase().split(" ");
-	if (userID != bot.id) { //filter out bot's own messages
-		if (message.slice(0,1) == "&") { //look for the command operator
-			statusReport("INTERACTION: " + user + ": " + message); //Log messages to disk.
-			if (channelID == "129321709533790208") {
-				if (msplit[0] in adminCommands) {
-					adminCommands[msplit[0]](user, message, msplit);
-				}
-				else {
-					statusReport("WARNING: Unknown Admin command used by " + user);
-				}
-			}
-			else {
-				if (msplit[0] in commands) {
-					commands[msplit[0]](channelID, user, userID, message, msplit);
-				}
-				else {
-					/*bot.sendMessage({
-					to: channelID,
-					message: "<@" + userID + " : Unknown Command."
-					}); */
-					statusReport("WARNING: " + user + " used unknown command " + message);
-				}
-			}
-		}
-		else if (message.indexOf("ayy") >= 0) {
-			bot.sendMessage({to:channelID, message: "lmao"});
-		}
-	}
+    var server = bot.serverFromChannel(channelID);
+    var msplit = message.trim().slice(1).toLowerCase().split(" ");
+    if (!cmds[msplit[0]]) {
+        return;
+    }
+    if (userID == bot.id) {
+        return;
+    }
+    if (message.slice(0, 1) != "&") {
+        return;
+    }
+    try {
+        cmds[msplit[0]].callback(channelID, user, userID, message, msplit);
+    } catch (e) {
+        statusReport(`Error with command ${cmds[msplit[0]].meta.name}: ${e}`);
+        return;
+    }
+    statusReport(`Successfully ran ${cmds[msplit[0]].meta.name} from ${user} (${userID})`);
 });
+
+
+//exports
+exports.bot = bot;
+exports.commands = cmds;
+exports.mysql = con;
+exports.api = api;
+exports.meta = meta;
+exports.plugin = g_plugins;
