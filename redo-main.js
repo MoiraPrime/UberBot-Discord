@@ -1,4 +1,5 @@
 const discord = require("discord.js"),
-  client = new discord.Client();
+  client = new discord.Client(),
+  config = require("./config.json");
 
-client.loginWithToken();
+client.loginWithToken(config.token);
